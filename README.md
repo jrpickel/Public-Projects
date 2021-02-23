@@ -1,2 +1,2 @@
 # python
-A collection of various python projects
+A GitHub repository of various projects using R and python. 
