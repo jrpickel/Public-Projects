@@ -1,0 +1,337 @@
+---
+title: "O-Well Analysis"
+output:
+  pdf_document:
+    extra_dependencies: ["float","flafter"]
+    fig_caption: yes
+    fig_width: 6
+    fig_height: 6
+  html_document:
+    df_print: paged
+indent: yes
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancypagestyle{plain}{\pagestyle{fancy}}
+- \headsep = 60pt
+sections: yes
+editor_options:
+  chunk_output_type: inline
+---
+
+\fancyhead[RO,RE]{Justin Pickel \\ STATS 419 \\ Dr.Shaffer }
+\fancyhead[LO,LE]{`r format(Sys.time(), '%B %d, %Y')`}
+\fancyhead[CO,CE]{Assignment: o-Well2}
+\setlength\parindent{24pt}
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(fig.pos = "H", out.extra = "")
+
+# load libraries
+# install.packages('ggpubr')
+# install.packages('dplyr')
+# install.packages('corrplot')
+# install.packages('Hmisc')
+# install.packages('conover.test')
+# install.packages('devtools')
+
+library(ggpubr)
+library(dplyr)
+library(corrplot)
+library(Hmisc)
+library(conover.test)
+library(devtools)
+
+
+my.source = 'github';
+github.path = "https://raw.githubusercontent.com/jrpickel/Public-Projects/";
+
+#remote access to RDS file
+rds.path = "https://github.com/jrpickel/Public-Projects/raw/main/R/water_analysis/wells.rds"
+
+# remote access to functions 
+source_url( paste0(github.path,"main/R/water_analysis/functions/functions-owell.R") );
+
+#data.rds = paste0(github.path,"main/workspace/wells.rds")
+```
+# Read in data
+We begin by reading in a .RDS file that contains a list of data frames that we will use during our analysis of well water in Gulf of Aqaba, Saudi Arabia.
+```{r,read in data}
+# read RDS file from github repo
+wells = readRDS(url(rds.path))
+
+# wells metals data frame
+metals = wells$saudi$metals
+
+# removed the "well" column as it does not add value in the analysis
+# and can be referenced by row number
+chemistry = wells$saudi$chemistry[,-1]
+```
+# Summary of data
+In March 2012 ground water samples were collected from twenty-three different wells along the coastal area of Gulf of Aqaba, Saudi Arabia. Most of the well are privately owned, dug in swallow aquifers and are located in relative close proximity tot eh east coast, except for well 23 which is a deeply dug well.
+\begin{quote}
+"Results of dissolved metals and physicochemical properties of groundwater samples are presented in Table
+1 and Table 2. Metal contents in groundwater samples were low throughout the sampling wells and they are
+within the range listed for waters suitable for drinking water (WHO, 2008). High concentrations of these metals
+have been found in the adjacent soil samples and geologic units (Table 3 and Table 4). This suggests that the
+primary source of dissolved metals to groundwater is not probably metals leached from the surrounding rocks
+and soils, but rather released from aquifer materials (water-rock interaction). It may also suggest that
+groundwater aquifer is not significantly recharged from surface runoff or the recharge rate from surface water is
+low or negligible. This is consistent with the low and erratic annual precipitation rate occurred in the region." - (Journal of Applied Science and Agriculture,2013)  
+  
+\end{quote}  
+  
+\noindent At the end of this document I have provided a data dictionary to help understand some of the abbreviations used in this data set.  
+  
+# Create Factors for Analysis
+I decided to turn the geology column in the two data sets into a factor data type. This will help later when we compare the mean values of an element across the different geology groups.  
+```{r, create factors}
+metals$geology = as.factor(metals$geology)
+chemistry$geology = as.factor(chemistry$geology)
+```
+
+# Descriptive Statistics
+Below is the summary statistics of the two data sets metals and chemistry. The summary statistics shows the min, max, first and third quartiles, the mean and the median of the the metals and elements. You can also see the different group under the "geology" section. These groups will be used later in the analysis to compare mean values of a metal or chemistry data point across different groups.
+  
+## Metals Summary Statistics
+Below is the summary statistics of the metals data set and includes the different geology groups.
+```{r, Metals summary,echo=FALSE}
+summary(metals)
+```
+  
+\newpage
+## Chemistry summary statistics
+Below is the summary statistics of the chemistry data set with the "well" column removed.
+```{r, Chemistry summary,echo=FALSE}
+summary(chemistry)
+```
+
+# Observing Metals data
+I decided to normalize the metals data set and plot a box plot for each metal. This allows us to easily compare all metals together in one graphic. The reason I normalized is to reduce the distortion of the different values of the metals this allows us to easily compare metals side by side. We can see from  
+(figure 1.) that we have several outliers.\par
+```{r,normalized metals boxplot, fig.cap= "Normilized boxplot of all metals.",echo=FALSE}
+# normalize the data by calling the function normalize
+metals.norm = normalize(metals)
+
+# remove all columns that are not metals (e.g. latitude,longitude,fault,and geology)
+metals.norm = metals.norm[c(1:23),-c(16,17,18)]
+
+# create a box plot of all metals
+boxplot(metals.norm,ylab = "Metal Value",xlab="Metals",las=2,cex.names=.75,
+        main= "Normilized Metal Values")
+```
+  
+# Observing Chemistry data
+Here is the chemistry data set normalized for easier visualization see (figure 2.).  
+```{r, normilized chemistry boxplot,fig.cap= "Normilized boxplot of all chemistry.",echo=FALSE}
+# normalize the data by calling the function normalize
+chemistry.norm = normalize(chemistry)
+
+# remove all columns that are not of interest (e.g. well, latitude, longitude, fault, geology)
+chemistry.norm = chemistry.norm[c(1:23),-c(21:25)]
+
+# create a box plot of all metals
+boxplot(chemistry.norm,ylab = "Normalized Value",xlab="Chemsitry data",
+        las=2,cex.names=.75,main= "Normilized chemical data values")
+```
+  
+# Lead Analysis
+When looking at (figure 2.) I found it interesting that element Pb also known as lead has a higher median value than the other metals. Upon this observation I wanted to see if there is a statistical difference in lead values among the different geology groups.
+
+## Lead Analysis Visualization
+To see if we have a statistical difference between groups I first decided to visualize the lead values across the different groups using a box plot. Here each box plot represents a different geology group and the body of the box plot represents the lead values from the metals data set. After visual inspection of (figure 3.) we can see that there does seem to be a difference in lead levels across the different groups. To confirm this hypothesis we will use either the one way ANOVA or the Kruskal-Wallis test.  
+\newline
+Lets first take a look at the summary statistics of lead across the groups. Then we can visualize this data using the box plots.  
+```{r, lead analysis,include=FALSE}
+# global variable used for reference.
+element = 'Pb'
+
+# group lead values across groups and perform a summary on the values.
+group_by(metals, geology) %>% 
+summarise(
+  n = n(), 
+  mean = mean(Pb, na.rm = TRUE),
+  sd = sd(Pb, na.rm = TRUE),
+  max = max(Pb,na.rm = TRUE),
+  min = min(Pb,na.rm = TRUE),
+  median = median(Pb,na.rm = TRUE)
+  )
+```
+  
+```{r, metals visualization, fig.cap="lead values across the diffrent geology groups"}
+# create box plot to visualize the summary data.
+ggboxplot(metals, x = "geology", y = element,
+          color = "geology",main = paste0("Element ",
+          element ," in diffrent rock formations"),x.text.angle = 45,
+          palette = c("#00AFBB", "#E7B800", "#FC4E07","#2414F4", "#E7B800", 
+                      "#C8409B","#6BAD5B"),
+          xlab = "Geology",ylab= paste0(element,"  micro gram/L"))+
+          theme(plot.title= element_text(hjust = .5))
+
+```
+  
+## One-way ANOVA
+A one-way ANOVA test is an extension of independent two-samples t-test for comparing means in a situation where there are more than two groups. In a one-way ANOVA, the data is organized into several groups base on one single grouping variable (also called \emph{factor} variable).  
+\newline
+In order to determine if we can use the parametric one-way ANOVA test we need to determine if the data conforms to the one-way ANOVA assumptions.  
+\newline
+The Assumptions are:
+\begin{itemize}
+  \item The observations are obtained independently and randomly from the population defined by the factor levels.
+  \item The data of each factor level are normally distributed.
+  \item These normal populations have a common variance. (Levene’s test can be used to check this.)  
+\end{itemize}  
+  
+\noindent Since the groups are independent we are good for the first assumption. Next we will check for normality.  
+
+### Checking for Normality
+To check for normality we can use the shapiro-test as well as a density plot. One issue with the shapiro test is that you need at least three samples to perform the test. Since some of our groups have less than three samples we can not assume normality for all groups. This means we have failed the second assumption of the one-way ANOVA test. Since we can not fully determine if the data is normally distributed across all groups we will use the non parametric equivalent Kruskal-Wallis test just to be safe. However we can still look at the density plot just for fun.  
+
+```{r, normality check, fig.cap="Density plot of lead value across all geology groups",warning=FALSE,fig.dim=c(7,6)}
+ggplot(metals, aes(x=Pb, group = geology, fill=geology)) +
+  geom_density(adjust=1.5,alpha=.4) + 
+  ggtitle("Density Plot of lead across groups") + 
+  theme(plot.title= element_text(hjust = .5))
+```
+  
+### Lead Density Plot
+While looking at the density plot (figure 4.) we can see most of the groups follow a normal distribution but since we can not confirm through a second test we will use the Kruskal-Wallis test.  
+  
+## Kruskal-Wallis test on Lead (Pb)
+The Kruskal-Wallis test is a non-parametric alternative to the one-way ANOVA test, which extends the two-samples Wilcoxon test in the situation where there are more than two groups. It is recommended when the assumptions of one-way ANOVA test are not met. The null hypothesis of the Kruskal-Wallis test is that there is no significant difference between the groups.  
+  
+### Interpreting the Kruskal-Wallis test on lead (Pb)
+After running the Kruskal-Wallis test we can see that the p-value of the test is not less than the alpha value of 0.05. This means we fail to reject the null hypothesis indicating that there is no significant difference of lead levels across the different geology groups.  
+```{r, metals krustal test}
+kruskal.test(metals$Pb ~ geology, data = metals)
+```
+  
+### Kruskal-Wallis test across all metals
+I decided it would be interesting to see if there are any metals that are statistically significant across the different groups. As we look at the results we can see that no metal has a small enough p-value to be significant.  
+```{r, all metals Kruskal test}
+metals.col = colnames(metals)[1:15]
+p.value = c()
+for(i in metals.col){
+  if( i != "geology"){
+    res = kruskal.test(metals[,i] ~ geology, data = metals)
+    p.value = c(p.value,res$p.value)
+  }
+}
+names(p.value) = metals.col
+round(p.value,4)
+```
+  
+# pH Analysis
+Looking back at (figure 2.) I found it interesting that pH had a higher median than some of the other chemical data points. I decided to ask the same question as I did with lead. Does the mean pH differ from the various geology groups. To help answer the question we will use the Kruskal-Wallis test as we did with the lead data. We are doing this since we would fail the same assumptions needed to use the one-way ANOVA test.  
+
+```{r, chemistry krustal test}
+kruskal.test(chemistry$pH ~ geology, data = chemistry)
+```
+  
+## Interpruting the Kruskal-Wallis test on pH
+After performing the Kruskal-Wallis test on pH we can see that the p-value of the test is lower than the alpha value of 0.05 which means we reject the null hypothesis. By rejecting the null hypothesis we can state that there is a statistically significant difference between the mean pH across the various groups. However, the Kruskal-Wallis test does not tell us which groups are different. To determine which groups are different we need to use the Conover-Iman test.  
+  
+### Conover-Iman test
+The Conover-Iman test performs a pairwise comparison based on Conover-Iman t-test statistic of rank differences. The Conover-Iman test is strictly valid if and only if the corresponding Kruskal-Willis null hypothesis is rejected.  
+```{r, chemistry Conover-Iman pairwise comparison}
+library(conover.test)
+conover.test(chemistry$pH, chemistry$geology,method = 'bh')
+
+# used to help determine column and row order
+#levels(chemistry$geology)
+```
+  
+### Interpruting the Conover-Iman pairwise comparison
+The above results show a pairwise matrix between the different geology groups. The top number is the t-test statistic and the bottom number is the p-value. Unfortunately the display of the Conover test does not properly display the names at the top and right side since our group names are too long or because they are comma delimited. To better understand the order of the names we reference our geology levels. 
+```{r,echo=FALSE}
+# used to help determine column and row order
+levels(chemistry$geology)
+```
+
+The results from the matrix show that pH is statistically different between Sand and the groups Alkaline_Granite, Alkaline_Volcanic, Granite, and Gypsum. We can visualize the results using a box plot (figure 5.).  
+```{r, chemistry visualization, fig.cap="pH values across the diffrent geology groups"}
+ggboxplot(chemistry, x = "geology", y = 'pH',
+          color = "geology",main = "pH in diffrent rock formations",x.text.angle = 45,
+          palette = c("#00AFBB", "#E7B800", "#FC4E07","#2414F4", "#E7B800", "#C8409B","#6BAD5B"),xlab = "Geology",ylab= 'pH') + theme(plot.title = element_text(hjust=.5))
+
+```
+  
+### Kruskal-Wallis test across all chemistry data points
+I decided it would be interesting to see if there are any other chemistry data points that are statistically significant across the different groups. After running the code below we can see that some data points have a small enough p-value to be significant. These data points include pH, TDS, Na, Cl, TS, SS, and latitude. These data points would be interesting to investigate in the future.  
+```{r, all chemistry Kruskal test}
+chemistry.col = colnames(chemistry)[1:23]
+p.value = c()
+for(i in chemistry.col){
+  if( i != "geology"){
+    res = kruskal.test(chemistry[,i] ~ geology, data = chemistry)
+    p.value = c(p.value,res$p.value)
+  }
+}
+names(p.value) = chemistry.col
+p.value
+```
+  
+# Correlation of chemsitry data
+I though I would include a correlation plot to easily visualize the correlation between the data. Below is a correlation plot for the metals data as well as the chemistry data.  
+
+## Metals Correlation
+```{r, metals matrix,fig.cap="Correlation matrix for the metals dataset",include=TRUE,message=FALSE}
+metals.corr = cor(as.matrix(metals[,-c(19)],2))
+corrplot(metals.corr, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
+```
+  
+## Chemistry Correlation
+```{r, chemsitry matrix, fig.cap="Correlation matrix for the chemistry dataset"}
+chemistry.corr = cor(as.matrix(chemistry[,-c(1,22:25)],2))
+corrplot(chemistry.corr, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
+```
+  
+\newpage
+# Conclusion
+After all the analysis we can conclude that the mean lead levels in the well water do not differ based on the geological rock formations. We can also conclude that the mean pH levels do differ across the various geological rock formations. In fact the mean pH value in sand is different from the rock formations Alkaline-Granite, Alkaline-Volcanic, Granite, and Gypsum. We can investigate further by looking at the correlation matrix to see if any linear relationship occur between the various data points. We could also perform principle component analysis to determine which factor are acting as the predictor variables to help explain why the pH level in Sand formations differ from the other rock formations. 
+  
+\newpage
+# Data Dictionary
+The following dictionary has been made to better understand the columns names of the two tables. Each value in the table is expressed in $\mu$g\textbackslash L (micro grams). \par
+## Metals 
+As - Arsenic  
+B - Boron  
+Ba - Barium  
+Be - Beryllium  
+Cd - Cadmium  
+Co - Cobalt  
+Cr - Chromium  
+Cu - Copper 
+Fe - Iron  
+Hg - Mercury  
+Mn - Manganese  
+Mo - Molybdenum  
+Pb - Lead  
+Se - selenium  
+Zn - Zinc\par
+## Chemistry
+well - The well number   
+pH - The ph of the well water  
+Eh - The redox of the well  
+TDS - Total dissolved solids  
+Ca - Calcium   
+K - Potassium  
+Mg - Magnesium  
+Na - Sodium  
+HCO3 - Bicarbonate  
+Cl - Chlorine    
+SO4 - Sulfate   
+NO3 - Nitrate  
+F - Fluorine 
+Po4 - Phosphate  
+TH - Total Hardness  
+TA - Total Alkalinity  
+TS - Total Solids  
+SS - Suspended Solids  
+COD - Chemical Oxygen Demand  
+BOD - Biological Oxygen Demand  
+DO - Dissolved Oxygen  
+
