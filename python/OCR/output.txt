@@ -1,0 +1,44 @@
+Metrics for Binary Perceptron
+iteration-1 137
+iteration-2 54
+iteration-3 30
+iteration-4 13
+iteration-5 7
+iteration-6 2
+iteration-7 2
+iteration-8 2
+iteration-9 2
+iteration-10 2
+iteration-11 2
+iteration-12 2
+iteration-13 2
+iteration-14 2
+iteration-15 2
+iteration-16 2
+iteration-17 2
+iteration-18 2
+iteration-19 2
+iteration-20 2
+
+iteration-1 57.4534% 33.6634%
+iteration-2 83.2298% 42.5743%
+iteration-3 90.6832% 50.4950%
+iteration-4 95.9627% 65.3465%
+iteration-5 97.8261% 67.3267%
+iteration-6 99.3789% 67.3267%
+iteration-7 99.3789% 67.3267%
+iteration-8 99.3789% 67.3267%
+iteration-9 99.3789% 67.3267%
+iteration-10 99.3789% 67.3267%
+iteration-11 99.3789% 67.3267%
+iteration-12 99.3789% 67.3267%
+iteration-13 99.3789% 67.3267%
+iteration-14 99.3789% 67.3267%
+iteration-15 99.3789% 67.3267%
+iteration-16 99.3789% 67.3267%
+iteration-17 99.3789% 67.3267%
+iteration-18 99.3789% 67.3267%
+iteration-19 99.3789% 67.3267%
+iteration-20 99.3789% 67.3267%
+
+99.3789% 72.2772%

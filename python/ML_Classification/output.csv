@@ -1,0 +1,15 @@
+Accuracy,Feature,Model
+0.8718718718718719,"('Gender', 'Previously_Insured', 'Vehicle_Age', 'Vehicle_Damage', 'Vintage')",svm
+0.8718718718718719,"('Gender', 'Age', 'Previously_Insured', 'Vehicle_Age', 'Policy_Sales_Channel', 'Vintage')",svm
+0.8718718718718719,"('Gender', 'Age', 'Vehicle_Age', 'Vehicle_Damage', 'Policy_Sales_Channel', 'Vintage')",svm
+0.8718718718718719,"('Gender', 'Driving_License', 'Previously_Insured', 'Vehicle_Age', 'Vehicle_Damage', 'Vintage')",svm
+0.8718718718718719,"('Gender', 'Age', 'Driving_License', 'Previously_Insured', 'Vehicle_Age', 'Policy_Sales_Channel', 'Vintage')",svm
+0.8718718718718719,"('Gender', 'Age', 'Driving_License', 'Vehicle_Age', 'Vehicle_Damage', 'Policy_Sales_Channel', 'Vintage')",svm
+0.8718718718718719,"('Gender', 'Age', 'Previously_Insured', 'Vehicle_Age', 'Vehicle_Damage', 'Policy_Sales_Channel', 'Vintage')",svm
+0.8718718718718719,"('Gender', 'Age', 'Driving_License', 'Previously_Insured', 'Vehicle_Age', 'Vehicle_Damage', 'Policy_Sales_Channel', 'Vintage')",svm
+0.8698698698698699,"('Gender', 'Region_Code')",knn
+0.8698698698698699,"('Previously_Insured', 'Vehicle_Damage')",knn
+0.8708708708708709,"('Gender', 'Previously_Insured', 'Policy_Sales_Channel')",clf
+0.8708708708708709,"('Gender', 'Driving_License', 'Previously_Insured', 'Policy_Sales_Channel')",clf
+0.8708708708708709,"('Gender', 'Previously_Insured', 'Vehicle_Damage', 'Policy_Sales_Channel')",clf
+0.8708708708708709,"('Gender', 'Driving_License', 'Previously_Insured', 'Vehicle_Damage', 'Policy_Sales_Channel')",clf
