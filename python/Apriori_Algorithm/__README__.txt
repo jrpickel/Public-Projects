@@ -11,7 +11,7 @@ Description:
 	results are outputed to a file named "output.txt" which is located in the current
 	working directory.
 
-Functions use din the program:
+Functions used in the program:
 
 def read_data(file,sep):
     '''
