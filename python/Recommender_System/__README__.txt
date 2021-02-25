@@ -1,20 +1,18 @@
-Librarys that are used in this program are as follows:
+Libraries that are used in this program are as follows:
 
 pandas
 numpy
 sklearn
 
-The following Librarys and methods are used in the program
+The following sklearn method is used in the program:
 
-import pandas as pd
-import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-In order to run this program you can call the program name from the terminal as long as your in the appropiate directory.
+In order to run this program you can call the program name from the terminal as long as you are in the appropiate directory.
 Once you run the program you will need to supply the following inputs:
 The file of the dataset (assume relative path) (e.x. ratings.csv)
 The file name for output (assume relative path) (e.x. output.txt)
-The size of neighbor set (e.x. 5)
+The size of the neighbor set (e.x. 5)
 
 Once all of these inputs are accepted the program will execute by first calculating the similarity scores for every item (movie).
 Then the program will go through all the items (movies) find all the users who currently have not rated the item (movie) and then
